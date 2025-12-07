@@ -23,7 +23,6 @@ local function containsKeyword(str)
 end
 
 local function sendChatMessage(text)
-    -- Новый чат (TextChatService)
     if TextChatService.ChatVersion == Enum.ChatVersion.TextChatService then
         TextChatService.TextChannels.RBXGeneral:SendAsync(text)
         return
