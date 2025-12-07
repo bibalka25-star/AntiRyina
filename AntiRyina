@@ -1,0 +1,68 @@
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TextChatService = game:GetService("TextChatService")
+
+local LocalPlayer = Players.LocalPlayer
+
+local keywords = {
+    "medusa",
+    "laser",
+    "swap",
+    "taser",
+    "boogie"
+}
+
+local function containsKeyword(str)
+    str = string.lower(str)
+    for _, key in ipairs(keywords) do
+        if string.find(str, key) then
+            return true
+        end
+    end
+    return false
+end
+
+local function sendChatMessage(text)
+    -- Новый чат (TextChatService)
+    if TextChatService.ChatVersion == Enum.ChatVersion.TextChatService then
+        TextChatService.TextChannels.RBXGeneral:SendAsync(text)
+        return
+    end
+
+    local chatRemote = ReplicatedStorage:FindFirstChild("DefaultChatSystemChatEvents")
+    if chatRemote and chatRemote:FindFirstChild("SayMessageRequest") then
+        chatRemote.SayMessageRequest:FireServer(text, "All")
+    end
+end
+
+local function trackCharacter(char)
+    char.ChildAdded:Connect(function(item)
+        if item:IsA("Tool") then
+            item.Equipped:Connect(function()
+                if containsKeyword(item.Name) then
+                    sendChatMessage("picked item: " .. item.Name)
+                end
+            end)
+        end
+    end)
+ 
+    for _, item in ipairs(char:GetChildren()) do
+        if item:IsA("Tool") then
+            item.Equipped:Connect(function()
+                if containsKeyword(item.Name) then
+                    sendChatMessage("picked item: " .. item.Name)
+                end
+            end)
+        end
+    end
+end
+
+LocalPlayer.CharacterAdded:Connect(function(char)
+    task.wait(0.3)
+    trackCharacter(char)
+end)
+
+if LocalPlayer.Character then
+    task.wait(0.3)
+    trackCharacter(LocalPlayer.Character)
+end
